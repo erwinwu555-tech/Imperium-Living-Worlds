@@ -29,3 +29,27 @@ Throws<ArgumentException>(() => new ConstructionOrder("", ConstructionKind.Ordin
 Throws<ArgumentOutOfRangeException>(() => new ConstructionOrder("bad", (ConstructionKind)99));
 Throws<KeyNotFoundException>(() => queue.Decide("missing", true));
 Console.WriteLine("PASS: construction permissions, queue ordering, rejection and invalid transitions.");
+
+
+var registry = new CityRegistry();
+var first = registry.Create("Northgate", 42, 1200);
+var second = registry.Create("Southwatch", 97, 2400);
+Check(first.Id.Length == 32, "A city must receive a stable 32-character GUID.");
+Check(registry.Get(first.Id).Name == "Northgate", "Registered city must be addressable by ID.");
+Check(registry.Cities.Count == 2, "City count must match registered records.");
+Check(registry.Cities[0].WorldTile == 42, "City list should have stable tile ordering.");
+Throws<InvalidOperationException>(() => registry.Register(first));
+Throws<InvalidOperationException>(() => registry.Create("Duplicate tile", 42, 1));
+Throws<ArgumentException>(() => new CityRecord("invalid", 1, "Test", 0));
+Throws<ArgumentException>(() => new CityRecord(Guid.NewGuid().ToString("N"), 2, " ", 0));
+Throws<ArgumentOutOfRangeException>(() => new CityRecord(Guid.NewGuid().ToString("N"), -1, "Test", 0));
+Throws<ArgumentOutOfRangeException>(() => new CityRecord(Guid.NewGuid().ToString("N"), 1, "Test", -1));
+Throws<KeyNotFoundException>(() => registry.Get(Guid.NewGuid().ToString("N")));
+var restored = CityRegistry.Restore(CityRegistry.CurrentSchemaVersion, registry.Cities);
+Check(restored.Get(first.Id).FoundedTick == 1200, "Restored city must retain founded tick.");
+Check(restored.Get(second.Id).WorldTile == 97, "Restored city must retain world tile.");
+Check(CityRegistry.Restore(0, null).Cities.Count == 0, "Empty legacy saves must migrate.");
+Throws<NotSupportedException>(() => CityRegistry.Restore(0, registry.Cities));
+Throws<NotSupportedException>(() => CityRegistry.Restore(99, registry.Cities));
+Throws<InvalidOperationException>(() => CityRegistry.Restore(1, new[] { first, first }));
+Console.WriteLine("PASS: city registration, stable identity, restore, legacy migration, invalid saves.");
