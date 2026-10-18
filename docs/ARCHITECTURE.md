@@ -19,3 +19,9 @@
 https://www.nuget.org/packages/Krafs.Rimworld.Ref/1.7.4979-alpha
 
 只把我们生成的两份 DLL 打入 ZIP，不分发游戏/参考 DLL。当前不依赖 Harmony、Odyssey 或云端服务。
+
+## M1 城市记录与存档适配（待游戏验证）
+
+`Source/Core/CityRegistry.cs` 保存稳定城市 GUID、世界格编号、名称和建城 tick，拒绝重复编号与重复地块。`Source/Compatibility/ImperiumWorldComponent.cs` 负责世界存档的 `ExposeData`，将游戏 Scribe 对象和纯 C# 模型分离。新存档 schema 为 1；此前无城市数据的空存档可迁移。**未知版本不可保证原样保存：遇到加载错误务必退出且不要覆盖旧存档。** 详见 `docs/CITY_PERSISTENCE.md`。
+
+上述接口尚未由实际游戏测试验证。此阶段没有城市创建 UI、世界生成或建设执行。
