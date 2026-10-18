@@ -12,7 +12,7 @@ public sealed class ImperiumWorldComponent : WorldComponent
     private int schemaVersion = CityRegistry.CurrentSchemaVersion;
     private List<CitySaveRecord>? serializedCities;
     private CityRegistry registry = new();
-    private bool preserveUnrecognizedSaveData;
+    private bool readOnlyAfterLoadError;
 
     public ImperiumWorldComponent(World world) : base(world) { }
 
@@ -20,7 +20,7 @@ public sealed class ImperiumWorldComponent : WorldComponent
 
     public CityRecord RegisterCity(string name, int worldTile, int foundedTick)
     {
-        if (preserveUnrecognizedSaveData)
+        if (readOnlyAfterLoadError)
             throw new InvalidOperationException("City data cannot be edited while its save schema is unrecognized.");
         return registry.Create(name, worldTile, foundedTick);
     }
@@ -29,7 +29,10 @@ public sealed class ImperiumWorldComponent : WorldComponent
     {
         base.ExposeData();
 
-        if (Scribe.mode == LoadSaveMode.Saving && !preserveUnrecognizedSaveData)
+        if (Scribe.mode == LoadSaveMode.Saving && readOnlyAfterLoadError)
+            Log.Error("[Imperium: Living Worlds] UNSAFE SAVE: city schema failed to load; unknown fields may be lost. Exit without overwriting the original save.");
+
+        if (Scribe.mode == LoadSaveMode.Saving && !readOnlyAfterLoadError)
         {
             schemaVersion = CityRegistry.CurrentSchemaVersion;
             serializedCities = registry.Cities.Select(CitySaveRecord.FromCore).ToList();
@@ -39,7 +42,7 @@ public sealed class ImperiumWorldComponent : WorldComponent
         {
             // LoadingVars must never keep entries from a previous save.
             registry = new CityRegistry();
-            preserveUnrecognizedSaveData = false;
+            readOnlyAfterLoadError = false;
         }
 
         Scribe_Values.Look(ref schemaVersion, "imperiumSchemaVersion", 0);
@@ -56,13 +59,14 @@ public sealed class ImperiumWorldComponent : WorldComponent
             }
             catch (Exception error)
             {
-                // Avoid overwriting data from an unknown or malformed schema
-                // on the next save. Keep raw data and original schema version.
-                preserveUnrecognizedSaveData = true;
-                Log.Error("[Imperium: Living Worlds] City data not loaded; raw save records preserved: " + error);
+                // Keep the registry read-only and alert the player. Scribe cannot
+                // guarantee an unknown schema's fields survive re-saving.
+                // The player MUST exit without saving and retain a backup.
+                readOnlyAfterLoadError = true;
+                Log.Error("[Imperium: Living Worlds] City data could not be loaded. EXIT WITHOUT SAVING and keep a backup of this save. City registry locked: " + error);
             }
 
-            if (!preserveUnrecognizedSaveData)
+            if (!readOnlyAfterLoadError)
                 serializedCities = null;
         }
     }
