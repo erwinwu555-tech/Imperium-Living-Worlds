@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ModMetaData>
+  <name>Imperium: Living Worlds</name>
+  <author>erwinwu555-tech</author>
+  <packageId>erwinwu555.imperium.livingworlds</packageId>
+  <supportedVersions><li>1.7</li></supportedVersions>
+  <description>Development scaffold for governed autonomous cities. Current build only logs startup; city simulation, UI, logistics and save persistence are not implemented. Targets experimental RimWorld 1.7.4979 references.</description>
+</ModMetaData>

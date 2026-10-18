@@ -1,0 +1,19 @@
+name: Bug report / 问题反馈
+description: Report a reproducible problem.
+body:
+  - type: input
+    id: build
+    attributes:
+      label: Mod commit and exact RimWorld version
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps, expected and actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant error log (remove personal data and keys)
