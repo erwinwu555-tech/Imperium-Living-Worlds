@@ -6,6 +6,7 @@
   <ItemGroup>
     <Compile Include="Compatibility/ImperiumMod.cs" />
     <Compile Include="Compatibility/ImperiumWorldComponent.cs" />
+    <Compile Include="Compatibility/ImperiumDebugActions.cs" />
     <ProjectReference Include="Core/Imperium.Core.csproj" />
     <PackageReference Include="Krafs.Rimworld.Ref" Version="1.7.4979-alpha" PrivateAssets="all" ExcludeAssets="runtime" />
   </ItemGroup>

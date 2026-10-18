@@ -53,3 +53,27 @@ Throws<NotSupportedException>(() => CityRegistry.Restore(0, registry.Cities));
 Throws<NotSupportedException>(() => CityRegistry.Restore(99, registry.Cities));
 Throws<InvalidOperationException>(() => CityRegistry.Restore(1, new[] { first, first }));
 Console.WriteLine("PASS: city registration, stable identity, restore, legacy migration, invalid saves.");
+
+// Tile lookup and the save/reload comparison line used for in-game validation.
+Check(registry.FindByTile(42)?.Id == first.Id, "Tile lookup must return the city on that tile.");
+Check(registry.FindByTile(7) is null, "Tile lookup must return null for an empty tile.");
+Check(registry.Count == 2, "Count must match registered records.");
+var failedRegistry = new CityRegistry();
+failedRegistry.Create("Kept", 5, 0);
+Throws<InvalidOperationException>(() => failedRegistry.Create("Rejected", 5, 0));
+Check(failedRegistry.Count == 1 && failedRegistry.FindByTile(5)?.Name == "Kept",
+    "A rejected registration must leave the registry and tile index unchanged.");
+Check(restored.FindByTile(97)?.Id == second.Id, "Restore must rebuild the tile index.");
+var mixedCase = new CityRecord(first.Id.ToUpperInvariant(), 300, "  Padded  ", 5);
+Check(mixedCase.Id == first.Id && mixedCase.Name == "Padded", "IDs normalise to lower case and names are trimmed.");
+foreach (var original in registry.Cities)
+{
+    // Same data must always render the same log line before save and after reload.
+    var reloaded = restored.Get(original.Id);
+    Check(CityRegistry.Describe(original) == CityRegistry.Describe(reloaded),
+        "Describe must be identical for a city before save and after restore.");
+}
+Check(CityRegistry.Describe(first) == $"id={first.Id} name=\"Northgate\" tile=42 foundedTick=1200",
+    "Describe format is part of the in-game test procedure and must stay stable.");
+Throws<ArgumentNullException>(() => CityRegistry.Describe(null!));
+Console.WriteLine("PASS: tile index, failed registration rollback, ID normalisation, stable describe line.");

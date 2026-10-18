@@ -39,10 +39,26 @@ public sealed class CityRegistry
     public const int CurrentSchemaVersion = 1;
 
     private readonly Dictionary<string, CityRecord> byId = new(StringComparer.Ordinal);
-    private readonly HashSet<int> occupiedTiles = [];
+    // Tile index gives O(1) lookups for map events; never scan all cities per tick.
+    private readonly Dictionary<int, CityRecord> byTile = [];
+
+    public int Count => byId.Count;
 
     public IReadOnlyList<CityRecord> Cities =>
         byId.Values.OrderBy(city => city.WorldTile).ToArray();
+
+    public CityRecord? FindByTile(int worldTile) =>
+        byTile.TryGetValue(worldTile, out var city) ? city : null;
+
+    /// <summary>
+    /// One stable log line per city. Players compare these lines before saving
+    /// and after reloading, so the format must not include volatile data.
+    /// </summary>
+    public static string Describe(CityRecord city)
+    {
+        ArgumentNullException.ThrowIfNull(city);
+        return $"id={city.Id} name=\"{city.Name}\" tile={city.WorldTile} foundedTick={city.FoundedTick}";
+    }
 
     public CityRecord Create(string name, int worldTile, int foundedTick)
     {
@@ -58,11 +74,11 @@ public sealed class CityRegistry
         ArgumentNullException.ThrowIfNull(city);
         if (byId.ContainsKey(city.Id))
             throw new InvalidOperationException("Duplicate city ID: " + city.Id);
-        if (occupiedTiles.Contains(city.WorldTile))
+        if (byTile.ContainsKey(city.WorldTile))
             throw new InvalidOperationException("There is already a city on tile " + city.WorldTile);
 
         byId.Add(city.Id, city);
-        occupiedTiles.Add(city.WorldTile);
+        byTile.Add(city.WorldTile, city);
     }
 
     public CityRecord Get(string id) =>
