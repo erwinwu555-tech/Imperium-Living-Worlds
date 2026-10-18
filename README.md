@@ -45,3 +45,7 @@ GitHub Actions 在 main 推送、PR 或手动运行时构建、测试并生成�
 6. 单独记录游戏版本、Commit、完整错误与复现步骤，再进行 Odyssey 单独启用测试。勿用正式存档试验。
 
 项目模块职责见 docs/ARCHITECTURE.md，阶段验收见 docs/ROADMAP.md。
+
+## M1 开发进度
+
+城市身份、注册表与世界级 Scribe 存档接口正在 `feature/m1-city-persistence` 分支审核。该部分尚未在游戏中验证，也不会自动生成城市。参见 `docs/CITY_PERSISTENCE.md`。
