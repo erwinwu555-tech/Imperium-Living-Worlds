@@ -48,4 +48,4 @@ GitHub Actions 在 main 推送、PR 或手动运行时构建、测试并生成�
 
 ## M1 开发进度
 
-城市身份、注册表与世界级 Scribe 存档接口正在 `feature/m1-city-persistence` 分支审核。该部分尚未在游戏中验证，也不会自动生成城市。参见 `docs/CITY_PERSISTENCE.md`。
+城市身份、注册表与世界级 Scribe 存档接口正在 `feature/m1-city-persistence` 分支审核；`claude/m1-city-registry` 在其上增加开发者模式验证命令（调试菜单 → Imperium → Register city on current map / Log city registry），用于游戏内保存/重载验收。该部分尚未在游戏中验证，也不会自动生成城市。验收步骤见 `docs/CITY_PERSISTENCE.md`。

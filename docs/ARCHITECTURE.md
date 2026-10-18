@@ -24,4 +24,6 @@ https://www.nuget.org/packages/Krafs.Rimworld.Ref/1.7.4979-alpha
 
 `Source/Core/CityRegistry.cs` 保存稳定城市 GUID、世界格编号、名称和建城 tick，拒绝重复编号与重复地块。`Source/Compatibility/ImperiumWorldComponent.cs` 负责世界存档的 `ExposeData`，将游戏 Scribe 对象和纯 C# 模型分离。新存档 schema 为 1；此前无城市数据的空存档可迁移。**未知版本不可保证原样保存：遇到加载错误务必退出且不要覆盖旧存档。** 详见 `docs/CITY_PERSISTENCE.md`。
 
-上述接口尚未由实际游戏测试验证。此阶段没有城市创建 UI、世界生成或建设执行。
+注册表按地块建立索引，`FindByTile` 为 O(1)，不逐 tick 扫描城市。`Source/Compatibility/ImperiumDebugActions.cs` 提供仅开发者模式可见的验证命令：在当前地图所在地块登记城市、把注册表写入日志；读档时也逐城输出同格式日志，供保存前后逐字比对。
+
+上述接口尚未由实际游戏测试验证。此阶段没有玩家可用的城市创建 UI、世界生成或建设执行。世界格目前以整数保存，尚未区分 1.6+ 的星球图层（Odyssey 轨道层），后续需改为图层感知 ID。
