@@ -19,6 +19,22 @@ public sealed class ImperiumWorldComponent : WorldComponent
 
     public IReadOnlyList<CityRecord> Cities => registry.Cities;
 
+    public bool IsLocked => readOnlyAfterLoadError;
+
+    public CityRecord? FindCityOnTile(int worldTile) => registry.FindByTile(worldTile);
+
+    /// <summary>
+    /// Writes the registry to the log in the stable format players compare
+    /// before saving and after reloading. Only called on load or on request.
+    /// </summary>
+    public void LogSummary(string reason)
+    {
+        var cities = registry.Cities;
+        Log.Message($"[Imperium: Living Worlds] City registry ({reason}): schema={CityRegistry.CurrentSchemaVersion} cities={cities.Count} locked={readOnlyAfterLoadError}");
+        foreach (var city in cities)
+            Log.Message("[Imperium: Living Worlds]   " + CityRegistry.Describe(city));
+    }
+
     public CityRecord RegisterCity(string name, int worldTile, int foundedTick)
     {
         if (readOnlyAfterLoadError)
@@ -56,7 +72,7 @@ public sealed class ImperiumWorldComponent : WorldComponent
                 var records = (serializedCities ?? [])
                     .Select(saved => saved.ToCore());
                 registry = CityRegistry.Restore(schemaVersion, records);
-                Log.Message("[Imperium: Living Worlds] Restored " + registry.Cities.Count + " city records.");
+                LogSummary("loaded from save");
             }
             catch (Exception error)
             {
