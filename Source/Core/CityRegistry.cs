@@ -88,14 +88,18 @@ public sealed class CityRegistry
     {
         // A missing version key in old saves reads as zero. This version had
         // no persisted city data, so its empty collection is a safe migration.
-        if (schemaVersion == 0 && cities is not null && cities.Any())
-            throw new NotSupportedException("Legacy schema has no documented city-record layout.");
         if (schemaVersion < 0 || schemaVersion > CurrentSchemaVersion)
             throw new NotSupportedException("Unsupported city save schema: " + schemaVersion);
 
         var registry = new CityRegistry();
         foreach (var city in cities ?? [])
+        {
+            // Scribe adapters may supply a lazy or single-pass sequence. Check
+            // legacy emptiness during this pass, without enumerating it twice.
+            if (schemaVersion == 0)
+                throw new NotSupportedException("Legacy schema has no documented city-record layout.");
             registry.Register(city);
+        }
         return registry;
     }
 }

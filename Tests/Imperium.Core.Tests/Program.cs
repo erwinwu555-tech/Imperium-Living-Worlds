@@ -77,3 +77,33 @@ Check(CityRegistry.Describe(first) == $"id={first.Id} name=\"Northgate\" tile=42
     "Describe format is part of the in-game test procedure and must stay stable.");
 Throws<ArgumentNullException>(() => CityRegistry.Describe(null!));
 Console.WriteLine("PASS: tile index, failed registration rollback, ID normalisation, stable describe line.");
+
+// Restoring from a save adapter must also accept one-shot record streams.
+static IEnumerable<T> Once<T>(IEnumerable<T> values)
+{
+    var enumerated = false;
+    return Enumerate();
+
+    IEnumerable<T> Enumerate()
+    {
+        if (enumerated) throw new Exception("Save records were enumerated twice.");
+        enumerated = true;
+        foreach (var value in values) yield return value;
+    }
+}
+static IEnumerable<CityRecord> UnreadableRecords() =>
+    new[] { 0 }.Select<int, CityRecord>(_ =>
+        throw new Exception("Unsupported schemas must be rejected before reading records."));
+Check(CityRegistry.Restore(0, Once(Array.Empty<CityRecord>())).Count == 0,
+    "An empty single-pass legacy stream must migrate without a second enumeration.");
+var streamed = CityRegistry.Restore(1, Once(registry.Cities));
+Check(streamed.Count == 2 && streamed.FindByTile(42)?.Id == first.Id,
+    "Current-schema restoration must preserve records and rebuild indices from one pass.");
+Throws<NotSupportedException>(() => CityRegistry.Restore(0, Once(registry.Cities)));
+Throws<NotSupportedException>(() => CityRegistry.Restore(-1, UnreadableRecords()));
+Throws<NotSupportedException>(() => CityRegistry.Restore(99, UnreadableRecords()));
+Throws<InvalidOperationException>(() => CityRegistry.Restore(1, Once(new[]
+{
+    first, new CityRecord(Guid.NewGuid().ToString("N"), first.WorldTile, "Duplicate tile", 0)
+})));
+Console.WriteLine("PASS: single-pass save restoration, unsupported schema short-circuit, duplicate saved tiles.");

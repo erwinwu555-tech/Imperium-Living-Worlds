@@ -17,7 +17,7 @@ python Scripts/package.py
 
 GitHub Actions 在 main 推送、PR 或手动运行时构建、测试并生成开发版 ZIP。Actions 页面打开成功的运行，在 Artifacts 下载包，再解压内层开发包，将 `Imperium-Living-Worlds` 放入本地 Mods 目录。启用 Core 和本 Mod 后检查日志中的 `[Imperium: Living Worlds]` 启动信息。
 
-编译通过不代表游戏内验证通过；测试时使用新存档。当前没有持久化世界数据，也没有总督 UI、城市生成、真实物流、军事、附庸城市或云端 AI。Odyssey 与 Harmony 集成将在需要时增加，不作为本骨架前置。
+编译通过不代表游戏内验证通过；测试时使用新存档。本开发分支已有城市注册和世界存档适配器，以及开发者模式注册/查询命令，但尚未在游戏中验证。当前没有总督 UI、城市生成、真实物流、军事、附庸城市或云端 AI。Odyssey 与 Harmony 集成将在需要时增加，不作为本骨架前置。
 
 ## Roadmap
 
