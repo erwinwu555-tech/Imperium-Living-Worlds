@@ -9,7 +9,7 @@
 - `CityRegistry.Restore`: explicit schema version, empty pre-M1 save migration, reject unsupported future versions and duplicate data.
 - `Imperium.RimWorld.ImperiumWorldComponent`: world-level `ExposeData` adapter using `Scribe_Values` and `Scribe_Collections` deep records; logs every city on load.
 - `Imperium.RimWorld.ImperiumDebugActions` (Dev Mode only, debug actions menu, category **Imperium**):
-  - **Register city on current map** — registers the current map's world tile as a city, named after the settlement. Refuses a second city on the same tile and refuses while the registry is locked.
+  - **Register city on current map** — registers a permanent player settlement's world tile as a city, named after the settlement. Refuses temporary maps, foreign settlements, negative tiles, a second city on the same tile, and registration while the registry is locked.
   - **Log city registry** — writes the registry to the log.
 - Behaviour tests covering registry invariants, restoration, invalid data, tile index, rollback of rejected registration, ID normalisation and the stable log line.
 
@@ -31,6 +31,14 @@ Existing saves without `imperiumSchemaVersion` migrate only when no city records
 6. Expected in the log: `City registry (loaded from save): schema=1 cities=1 locked=False` followed by a line **identical** to the one from step 3.
 7. No red errors from Imperium at any step.
 
+Also try registration on a temporary encounter map and a foreign settlement
+map. Expected: a rejection message, no new city record and no red error.
+These ownership checks apply to the developer command; the low-level Core
+registry intentionally has no game faction dependency.
+
+Restoration consumes its input record sequence only once, including empty
+pre-M1 saves. Unsupported schema versions are rejected before records are read.
+
 Not yet covered in game: missing/future schema handling with real save files (covered by unit tests only).
 
 ## Known limitations
@@ -40,6 +48,6 @@ Not yet covered in game: missing/future schema handling with real save files (co
 
 ## Next iteration
 
-- World tile bounds, planet layer and faction ownership validation.
+- Full world tile bounds and planet layer validation; ownership checks beyond the developer registration command.
 - Version migration fixtures and historical save compatibility.
 - Auditable save-state integrity checks and diagnostic export.

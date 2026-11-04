@@ -1,6 +1,7 @@
 using Imperium.Core;
 using LudeonTK;
 using RimWorld;
+using RimWorld.Planet;
 using Verse;
 
 namespace Imperium.RimWorld;
@@ -30,7 +31,20 @@ public static class ImperiumDebugActions
             return;
         }
 
+        // Temporary encounter maps and foreign settlements are not player
+        // cities. Reject them before adding persistent world data.
+        if (map.Parent is not Settlement settlement || settlement.Faction != Faction.OfPlayer)
+        {
+            Report("Only a permanent player settlement can be registered as a city.", MessageTypeDefOf.RejectInput);
+            return;
+        }
+
         int tile = map.Tile;
+        if (tile < 0)
+        {
+            Report("This settlement has no valid world tile; nothing registered.", MessageTypeDefOf.RejectInput);
+            return;
+        }
         var existing = registry.FindCityOnTile(tile);
         if (existing is not null)
         {
@@ -38,7 +52,7 @@ public static class ImperiumDebugActions
             return;
         }
 
-        var name = map.Parent?.Label;
+        var name = settlement.Label;
         if (string.IsNullOrWhiteSpace(name))
             name = "City at tile " + tile;
 
